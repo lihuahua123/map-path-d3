@@ -1,0 +1,262 @@
+<body><div id="container"></div>
+<div class="row">
+    <div id="text1" class="col-xl-2 col-md-6 col-sm-6 col-sm-6">入口</div>
+    <div id="text2" class="col-xl-2 col-md-6 col-sm-6 col-sm-6">出口</div>
+    <div id="text3" class="col-xl-2 col-md-6 col-sm-6 col-sm-6">空车位</div>
+    <div id="text4" class="col-xl-2 col-md-6 col-sm-6 col-sm-6">非空车位</div>
+    <div id="text5" class="col-xl-2 col-md-6 col-sm-6 col-sm-6">道路</div>
+    <div>
+        </div></body>
+        <style>
+            circle{stroke: black; fill: transparent;stroke-width:5;}
+     circle:hover{stroke:red;}
+            </style>
+
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script>
+            d3.select("#text1")
+                .append("svg")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .append("rect")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .style("fill", d3.rgb(100, 149, 237));
+            d3.select("#text2")
+                .append("svg")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .append("rect")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .style("fill", d3.rgb(0, 255, 127));
+            d3.select("#text3")
+                .append("svg")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .append("rect")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .style("fill", d3.rgb(255, 182, 193));
+            d3.select("#text4")
+                .append("svg")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .append("rect")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .style("fill", d3.rgb(238, 130, 238));
+            d3.select("#text5").append("svg")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .append("rect")
+                .attr("width", "20px")
+                .attr("height", "20px")
+                .style("fill", d3.rgb(112, 128, 144));
+            var pathlist = [
+
+            ];
+
+
+            var correlationMatrix = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [-2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [0, 2, 0, 0, 0, -1, 0, 0, 0, 2, 0, 0, 0, -1, 0, 0, 0, 2, 0],
+            [0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0],
+            [0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0],
+            [0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0],
+            [0, 2, 0, 0, 0, -1, 0, 0, 0, 2, 0, 0, 0, -1, 0, 0, 0, 2, 0],
+            [-2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+
+
+            function init(correlationMatrix, pathlist) {
+
+
+                var options = {
+                    container: "#container",
+                    data: correlationMatrix,
+                };
+
+                var margin = { top: 50, right: 50, bottom: 100, left: 100 },
+                    width = correlationMatrix[0].length * 35,
+                    height = correlationMatrix.length * 35,
+                    data = options.data,
+                    container = options.container;
+
+
+
+                if (!data) {
+                    throw new Error("Please pass data");
+                }
+
+                if (!Array.isArray(data) || !data.length || !Array.isArray(data[0])) {
+                    throw new Error("It should be a 2-D array");
+                }
+
+
+
+                var numrows = data.length;
+                var numcols = data[0].length;
+                var ok = d3
+                    .select(container)
+                    .append("div")
+                    .attr("class", "ok");
+                var svg = ok
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("fill", "white")
+                    .attr("viewBox", "0 0 800 800")
+         .attr("preserveAspectRatio","xMinYMin") 
+
+
+                var x = d3.scale
+                    .ordinal()
+                    .domain(d3.range(numcols))
+                    .rangeBands([0, width]);
+
+                var y = d3.scale
+                    .ordinal()
+                    .domain(d3.range(numrows))
+                    .rangeBands([0, height]);
+
+
+
+                var row = svg
+                    .selectAll(".row")
+                    .data(data)
+                    .enter()
+                    .append("g")
+                    .attr("class", "row")
+                    .attr("transform", function (d, i) {
+                        return "translate(0," + y(i) + ")";
+                    });
+
+                var cell = row
+                    .selectAll(".cell")
+                    .data(function (d) {
+                        return d;
+                    })
+                    .enter()
+                    .append("g")
+                    .attr("class", "cell")
+                    .attr("transform", function (d, i) {
+                        return "translate(" + x(i) + ", 0)";
+                    });
+
+
+                row.selectAll(".cell")
+                    .append("rect")
+                    .attr("class", "rectt")
+                    .attr("width", x.rangeBand())
+                    .attr("height", y.rangeBand())
+                    .style("stroke-width", 1)
+                    .style("stroke", "black");
+
+                row
+                    .selectAll(".cell")
+                    .style("fill", function (d) {
+                        if (d === 0) {
+                            //车位可用
+                            return d3.rgb(255, 182, 193);
+                        }
+                        if (d === -2) {
+                            //入口
+                            return d3.rgb(100, 149, 237);
+                        }
+                        if (d === -1) {
+                            //出口
+                            return d3.rgb(0, 255, 127);
+                        }
+                        if (d === 2) {
+                            //道路
+                            return d3.rgb(112, 128, 144);
+                        }
+                        if (d === 1) {
+                            //有车
+                            return d3.rgb(238, 130, 238);
+                        }
+                    })
+
+                var k = 0, gg = 0, clonumber = 0;
+                var location = new Array();
+
+
+                cell.append("text")
+                    .attr("dy", ".32em")
+                    .attr("x", x.rangeBand() / 2)
+                    .attr("y", y.rangeBand() / 2)
+                    .attr("text-anchor", "middle")
+                    .style("fill", function (d, i) { return 'black'; })
+                    .text(function (d, i) {
+                        if (i == numcols - 1) clonumber++;
+                        if (d == -2) {
+                            if (gg == 0) {
+                                gg++;
+                        
+                                location.push([clonumber,i])
+                                return "所在位置";
+                            }
+                            else return "";
+                        }
+                        else if (d == -1) {
+                            k = k + 1;
+                           
+                            location.push([clonumber,i])
+                            return "出口" + k;
+                        }
+                        else return "";
+                    });
+
+                cell.append('circle')
+                .attr("cx", x.rangeBand() / 2)
+                    .attr("cy", y.rangeBand() / 2)
+        .attr("class", "circle")
+	    .attr("r", x.rangeBand()/2-5)
+    .style("stroke-width", 1);
+
+
+                var r = 35 / 2;
+                var lineData = [];
+
+
+
+
+                for (var i = 0; i < pathlist.length; i++) {
+                    var temp = {
+                        x: pathlist[i][1] * 35 + r,
+                        y: pathlist[i][0] * 35 + r
+                    };
+                    lineData.push(temp);
+                }
+
+                //线生成器
+                var lineFunction = d3.svg
+                    .line()
+                    .x(function (d) {
+                        return d.x;
+                    })
+                    .y(function (d) {
+                        return d.y;
+                    })
+                    .interpolate("linear");
+
+                //svg容器
+
+                //把path扔到容器中-- lineData和lineFunction，并给d赋属性
+                var lineGraph = svg
+                    .append("path")
+                    .attr("d", lineFunction(lineData))
+                    .attr("stroke", "blue")
+                    .attr("stroke-width", 2)
+                    .attr("fill", "none");
+            return location; 
+            };
+
+
+            
+
+   var location2=init(correlationMatrix, pathlist);
+   console.log(location2);
+        </script>
+
